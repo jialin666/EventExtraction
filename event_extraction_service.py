@@ -41,7 +41,7 @@ def main():
     SERVICE.config['JSON_AS_ASCII'] = False
     SERVICE.run(
         host='0.0.0.0',
-        port=5003,
+        port=5001,
         debug=True
     )
 
