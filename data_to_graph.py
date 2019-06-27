@@ -15,34 +15,34 @@ class DataToGraph():
             # 事件节点
             node['label'] = event.event['events']
             node['id'] = '100001'
-            node['type'] = 'event'
+            node['types'] = 'event'
             nodes.append(copy.deepcopy(node))
 
             # 触发词节点
             node['label'] = event.event['trigger']
             node['id'] = '200001'
-            node['type'] = 'trigger'
+            node['types'] = 'trigger'
             nodes.append(copy.deepcopy(node))
 
             # 事件时间节点
             if event.event['time']:
                 node['label'] = event.event['time']
                 node['id'] = '300001'
-                node['type'] = 'time'
+                node['types'] = 'time'
                 nodes.append(copy.deepcopy(node))
 
             # 事件原因节点
             if event.event['cause']:
                 node['label'] = event.event['cause']
                 node['id'] = '600001'
-                node['type'] = 'cause'
+                node['types'] = 'cause'
                 nodes.append(copy.deepcopy(node))
 
             # 事件位置节点
             if event.event['location']:
                 node['label'] = '位置'
                 node['id'] = '400001'
-                node['type'] = 'location'
+                node['types'] = 'location'
                 nodes.append(copy.deepcopy(node))
                 i = 0
                 while i < len(event.event['location']):
@@ -55,7 +55,7 @@ class DataToGraph():
             if event.event['organization']:
                 node['label'] = '救援组织'
                 node['id'] = '500001'
-                node['type'] = 'orgainzation'
+                node['types'] = 'orgainzation'
                 nodes.append(copy.deepcopy(node))
                 i = 0
                 while i < len(event.event['organization']):
@@ -68,7 +68,7 @@ class DataToGraph():
             if event.event['lose']:
                 node['label'] = '伤亡'
                 node['id'] = '700001'
-                node['type'] = 'lose'
+                node['types'] = 'lose'
                 nodes.append(copy.deepcopy(node))
                 i = 0
                 while i < len(event.event['lose']):
