@@ -16,12 +16,14 @@ class DataToGraph():
             node['label'] = ''
             node['text'] = event.event['events']
             node['id'] = '100001'
+            node['type'] = 'event'
             nodes.append(copy.deepcopy(node))
 
             # 触发词节点
             node['label'] = ''
             node['text'] = event.event['trigger']
             node['id'] = '200001'
+            node['type'] = 'trigger'
             nodes.append(copy.deepcopy(node))
 
             # 事件时间节点
@@ -29,6 +31,7 @@ class DataToGraph():
                 node['label'] = ''
                 node['text'] = event.event['time']
                 node['id'] = '300001'
+                node['type'] = 'time'
                 nodes.append(copy.deepcopy(node))
 
             # 事件原因节点
@@ -36,6 +39,7 @@ class DataToGraph():
                 node['label'] = ''
                 node['text'] = event.event['cause']
                 node['id'] = '600001'
+                node['type'] = 'cause'
                 nodes.append(copy.deepcopy(node))
 
             # 事件位置节点
@@ -43,6 +47,7 @@ class DataToGraph():
                 node['label'] = ''
                 node['text'] = '位置'
                 node['id'] = '400001'
+                node['type'] = 'location'
                 nodes.append(copy.deepcopy(node))
                 i = 0
                 while i < len(event.event['location']):
@@ -57,6 +62,7 @@ class DataToGraph():
                 node['label'] = ''
                 node['text'] = '救援组织'
                 node['id'] = '500001'
+                node['type'] = 'orgainzation'
                 nodes.append(copy.deepcopy(node))
                 i = 0
                 while i < len(event.event['organization']):
@@ -71,6 +77,7 @@ class DataToGraph():
                 node['label'] = ''
                 node['text'] = '伤亡'
                 node['id'] = '700001'
+                node['type'] = 'lose'
                 nodes.append(copy.deepcopy(node))
                 i = 0
                 while i < len(event.event['lose']):
@@ -85,35 +92,31 @@ class DataToGraph():
             if event.event['trigger']:
                 link['source'] = '100001'
                 link['target'] = '200001'
-                link['tag'] = '触发词'
-                link['type'] = 'trigger'
-                link['color'] = 'blue'
+                link['label'] = '触发词'
+                link['type'] = ''
                 links.append(copy.deepcopy(link))
 
             # 事件 -- 时间
             if event.event['time']:
                 link['source'] = '100001'
                 link['target'] = '300001'
-                link['tag'] = '时间'
-                link['type'] = 'time'
-                link['color'] = 'blue'
+                link['label'] = '时间'
+                link['type'] = ''
                 links.append(copy.deepcopy(link))
 
             # 事件 -- 地点
             if event.event['location']:
                 link['source'] = '100001'
                 link['target'] = '400001'
-                link['tag'] = ''
+                link['label'] = ''
                 link['type'] = ''
-                link['color'] = 'blue'
                 links.append(copy.deepcopy(link))
                 i = 0
                 while i < len(event.event['location']):
                     link['source'] = '400001'
                     link['target'] = str(400002 + i)
-                    link['tag'] = ''
+                    link['label'] = ''
                     link['type'] = ''
-                    link['color'] = 'red'
                     links.append(copy.deepcopy(link))
                     i += 1
 
@@ -121,17 +124,15 @@ class DataToGraph():
             if event.event['organization']:
                 link['source'] = '100001'
                 link['target'] = '500001'
-                link['tag'] = ''
+                link['label'] = ''
                 link['type'] = ''
-                link['color'] = 'blue'
                 links.append(copy.deepcopy(link))
                 i = 0
                 while i < len(event.event['organization']):
                     link['source'] = '500001'
                     link['target'] = str(500002 + i)
-                    link['tag'] = ''
+                    link['label'] = ''
                     link['type'] = ''
-                    link['color'] = 'red'
                     links.append(copy.deepcopy(link))
                     i += 1
 
@@ -139,26 +140,23 @@ class DataToGraph():
             if event.event['cause']:
                 link['source'] = '100001'
                 link['target'] = '600001'
-                link['tag'] = '原因'
-                link['type'] = 'cause'
-                link['color'] = 'blue'
+                link['label'] = '原因'
+                link['type'] = ''
                 links.append(copy.deepcopy(link))
 
             # 事件 -- 损失
             if event.event['lose']:
                 link['source'] = '100001'
                 link['target'] = '700001'
-                link['tag'] = ''
+                link['label'] = ''
                 link['type'] = ''
-                link['color'] = 'blue'
                 links.append(copy.deepcopy(link))
                 i = 0
                 while i < len(event.event['lose']):
                     link['source'] = '700001'
                     link['target'] = str(700002 + i)
-                    link['tag'] = ''
+                    link['label'] = ''
                     link['type'] = ''
-                    link['color'] = 'red'
                     links.append(copy.deepcopy(link))
                     i += 1
 
