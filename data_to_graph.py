@@ -13,76 +13,66 @@ class DataToGraph():
 
             node = {}
             # 事件节点
-            node['label'] = ''
-            node['text'] = event.event['events']
+            node['label'] = event.event['events']
             node['id'] = '100001'
             node['type'] = 'event'
             nodes.append(copy.deepcopy(node))
 
             # 触发词节点
-            node['label'] = ''
-            node['text'] = event.event['trigger']
+            node['label'] = event.event['trigger']
             node['id'] = '200001'
             node['type'] = 'trigger'
             nodes.append(copy.deepcopy(node))
 
             # 事件时间节点
             if event.event['time']:
-                node['label'] = ''
-                node['text'] = event.event['time']
+                node['label'] = event.event['time']
                 node['id'] = '300001'
                 node['type'] = 'time'
                 nodes.append(copy.deepcopy(node))
 
             # 事件原因节点
             if event.event['cause']:
-                node['label'] = ''
-                node['text'] = event.event['cause']
+                node['label'] = event.event['cause']
                 node['id'] = '600001'
                 node['type'] = 'cause'
                 nodes.append(copy.deepcopy(node))
 
             # 事件位置节点
             if event.event['location']:
-                node['label'] = ''
-                node['text'] = '位置'
+                node['label'] = '位置'
                 node['id'] = '400001'
                 node['type'] = 'location'
                 nodes.append(copy.deepcopy(node))
                 i = 0
                 while i < len(event.event['location']):
-                    node['label'] = ''
-                    node['text'] = event.event['location'][i]
+                    node['label'] = event.event['location'][i]
                     node['id'] = str(400002 + i)
                     nodes.append(copy.deepcopy(node))
                     i += 1
 
             # 事件组织节点
             if event.event['organization']:
-                node['label'] = ''
-                node['text'] = '救援组织'
+                node['label'] = '救援组织'
                 node['id'] = '500001'
                 node['type'] = 'orgainzation'
                 nodes.append(copy.deepcopy(node))
                 i = 0
                 while i < len(event.event['organization']):
-                    node['label'] = ''
-                    node['text'] = event.event['organization'][i]
+                    node['label'] = event.event['organization'][i]
                     node['id'] = str(500002 + i)
                     nodes.append(copy.deepcopy(node))
                     i += 1
             
             # 事件损失节点
             if event.event['lose']:
-                node['label'] = ''
-                node['text'] = '伤亡'
+                node['label'] = '伤亡'
                 node['id'] = '700001'
                 node['type'] = 'lose'
                 nodes.append(copy.deepcopy(node))
                 i = 0
                 while i < len(event.event['lose']):
-                    node['label'] = ''
-                    node['text'] = event.event['lose'][i]
+                    node['label'] = event.event['lose'][i]
                     node['id'] = str(700002 + i)
                     nodes.append(copy.deepcopy(node))
                     i += 1
