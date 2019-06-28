@@ -143,12 +143,12 @@ class EventExtraction():
         pattern = re.compile('.*?(未造成.*?(?:{0}))[,.?:;!，。？：；]'.format('|'.join(key_words)))
         patterns.append(pattern)
 
-        patterns.append(re.compile('.*?造成.*?(\d+人死亡)[,.?:;!，。？：；]'))
-        patterns.append(re.compile('.*?造成.*?(\d+人身亡)[,.?:;!，。？：；]'))
-        patterns.append(re.compile('.*?造成.*?(\d+人受伤)[,.?:;!，。？：；]'))
-        patterns.append(re.compile('.*?造成.*?(\d+人烧伤)[,.?:;!，。？：；]'))
-        patterns.append(re.compile('.*?造成.*?(\d+人坠楼身亡)[,.?:;!，。？：；]'))
-        patterns.append(re.compile('.*?造成.*?(\d+人遇难)[,.?:;!，。？：；]'))
+        patterns.append(re.compile('(\d+人死亡)'))
+        patterns.append(re.compile('(\d+人身亡)'))
+        patterns.append(re.compile('(\d+人受伤)'))
+        patterns.append(re.compile('(\d+人烧伤)'))
+        patterns.append(re.compile('(\d+人坠楼身亡)'))
+        patterns.append(re.compile('(\d+人遇难)'))
         
         return patterns
         
