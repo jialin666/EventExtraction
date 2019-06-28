@@ -84,8 +84,9 @@ class EventExtraction():
         location = ""
         result = []
         while i < len(nlp_result):
-            if (nlp_result[i][1] == 'LOCATION' or 
-                nlp_result[i][1] == 'FACILITY'):
+            if (nlp_result[i][1] == 'LOCATION' or
+                    nlp_result[i][1] == 'FACILITY' or
+                    nlp_result[i][1] == 'CITY'):
                 location += nlp_result[i][0]
                 if state == False:
                     state = True
