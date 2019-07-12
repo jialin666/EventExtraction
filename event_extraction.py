@@ -7,85 +7,168 @@
 
 import re
 import settings
-from stanfordcorenlp import StanfordCoreNLP
 
 
 class EventExtraction():
     ''' 事件提取类
     '''
-    def __init__(self, context):
+    def __init__(self, context, nlp):
         # 初始化事件字典，包含触发词，事件类型
         # 时间，地点，救援组织，事故原因，事故损失
+        self.nlp_result = nlp.ner_result
+        self.news = context
         self.event = {}
 
-        # 使用stanfordnlp工具分析事件
-        nlp = StanfordCoreNLP(path_or_host=settings.stanfordnlp_host,
-                              lang=settings.stanfordnlp_language,
-                              port=settings.stanfordnlp_port)
-        self.nlp_result = nlp.ner(context)
         self.having_event()
 
-        if self.event['events'] == '火灾':
-            # 提取时间、地点、救援组织
-            self.event['time'] = ",".join(self.taking_time())
-            self.event['location'] = self.taking_location()
-            self.event['organization'] = self.taking_organization()
+        if self.event['触发词'] in settings.FIRE_TRIGGER:
+            self.fire_event()
+        elif self.event['触发词'] == '警示函':
+            self.finance_punishment()
+        elif self.event['触发词'] == '裁员':
+            self.finance_loyaffs()
+        elif self.event['触发词'] == '发行股份':
+            self.finance_lssuing()
 
-            # 定义事故原因模板
-            self.cause_patterns = self.pattern_cause()
-            # 定义事故损失模板
-            self.lose_patterns = self.pattern_lose()
-            # 匹配事故原因和事故损失
-            self.pattern_match(context)
-            self.event['cause'] = "".join(self.cause)
-            self.event['lose'] = self.lose
-        else:
-            self.event['trigger'] = None
-            self.event['events'] = None
-        nlp.close()
+    def fire_event(self):
+        ''' 火灾事件
+        '''
+        # 提取时间、地点、救援组织
+        self.event['火灾时间'] = self.taking_time()[0]
+        self.event['火灾地点'] = self.taking_location()
+        self.event['救援组织'] = self.taking_organization()
+        # 匹配事故原因和事故损失
+        self.cause = pattern_match(pattern_cause(), self.news)
+        self.lose = pattern_match(pattern_lose(), self.news)
+        self.event['火灾原因'] = "".join(self.cause)
+        self.event['伤亡损失'] = self.lose
+
+    def finance_loyaffs(self):
+        ''' 裁员事件
+        '''
+        event_time = self.taking_time()
+        if event_time:
+            self.event['时间'] = event_time[0]
+        self.event['裁员组织'] = self.taking_organization()
+        self.event['裁员人数'] = self.taking_number()
+
+    def finance_punishment(self):
+        ''' 处罚事件
+        '''
+        event_time = self.taking_time()
+        if event_time:
+            self.event['时间'] = event_time[0]
+        organizations = self.taking_organization()
+        if organizations:
+            self.event['监管组织'] = []
+            self.event['受罚组织'] = []
+        for organization in organizations:
+            if re.search(re.compile(r"证监会"), organization):
+                self.event['监管组织'].append(organization)
+            elif re.search(re.compile(r"证监局"), organization):
+                self.event['监管组织'].append(organization)
+            else:
+                self.event['受罚组织'].append(organization)
+
+    def finance_lssuing(self):
+        ''' 发行股票事件
+        '''
+        event_time = self.taking_time()
+        if event_time:
+            self.event['时间'] = event_time[0]
+        self.event['发行组织'] = self.taking_organization()
+        numbers = self.taking_number()
+        for number in numbers:
+            if re.search(r"[\d.]*?万", number):
+                self.event['发行量'] = number
+            if re.search(r"[\d.]*?元", number):
+                self.event['发行价格'] = number
+        number = re.search(r"([\d万]+?股)", self.news)
+        if number:
+            self.event['发行量'] = number[0]
 
     def having_event(self):
         ''' 获取事件
         '''
         for item in self.nlp_result:
             if item[1] == 'CAUSE_OF_DEATH':
-                if item[0] in settings.trigger_fire:
-                    self.event['trigger'] = item[0]
-                    self.event['events'] = '火灾'
+                if item[0] in settings.FIRE_TRIGGER:
+                    self.event['触发词'] = item[0]
+                    self.event['事件'] = settings.FIRE_TRIGGER[item[0]]
+                    return
+
+        finance_trigger = [key for key in settings.FINANCE_TRIGGER]
+        re_pattern = re.compile(r"({})".format('|'.join(finance_trigger)))
+        match_list = re.findall(re_pattern, self.news)
+        if match_list:
+            self.event['触发词'] = match_list[0]
+            self.event['事件'] = settings.FINANCE_TRIGGER[match_list[0]]
+            return
+
+        # 未发现触发词
+        self.event['事件'] = None
+        self.event['触发词'] = None
+
+    def taking_number(self):
+        ''' 获取数目
+        '''
+        i = 0
+        state = False
+        having_time = False
+        only_number = True
+        number = ""
+        result = []
+        while i < len(self.nlp_result):
+            if self.nlp_result[i][1] in ['DATE', 'TIME']:
+                having_time = True
+            elif self.nlp_result[i][1] in ['NUMBER']:
+                number += self.nlp_result[i][0]
+                state = True
+            elif self.nlp_result[i][1] in ['PERCENT', 'MONEY']:
+                number += self.nlp_result[i][0]
+                state = True
+                only_number = False
+            elif self.nlp_result[i][1] == 'MISC':
+                number += self.nlp_result[i][0]
+                only_number = False
+            else:
+                if state and not having_time and not only_number:
+                    result.append(number)
+                number = ""
+                state = False
+                having_time = False
+                only_number = True
+            i += 1
+        if state and not having_time and not only_number:
+            result.append(number)
+
+        result = list(set(result))
+        return result
 
     def taking_time(self):
         ''' 获取时间
         '''
         i = 0
         state = False
-        only_date = False
         time_fire = ""
         result = []
         while i < len(self.nlp_result):
-            if self.nlp_result[i][1] == 'DATE':
+            if self.nlp_result[i][1] in ['DATE', 'TIME']:
                 time_fire += self.nlp_result[i][0]
-                if not state:
-                    state = True
-                    only_date = True
+                state = True
+            elif self.nlp_result[i][1] in ['NUMBER', 'MISC']:
+                time_fire += self.nlp_result[i][0]
             else:
                 if state:
-                    if (self.nlp_result[i][1] == 'TIME'
-                            or self.nlp_result[i][1] == 'NUMBER'
-                            or self.nlp_result[i][1] == 'MISC'):
-                        time_fire += self.nlp_result[i][0]
-                        only_date = False
-                    else:
-                        if not only_date:
-                            result.append(time_fire)
-                        time_fire = ""
-                        state = False
+                    result.append(time_fire)
+                time_fire = ""
+                state = False
             i += 1
         if state:
             result.append(time_fire)
 
-        result = list(set(result))
-
         return result
+
 
     def taking_location(self):
         ''' 获取地点
@@ -114,6 +197,7 @@ class EventExtraction():
 
         return result
 
+
     def taking_organization(self):
         ''' 获取组织
         '''
@@ -122,7 +206,7 @@ class EventExtraction():
         organization = ""
         result = []
         while i < len(self.nlp_result):
-            if self.nlp_result[i][1] == 'ORGANIZATION':
+            if self.nlp_result[i][1] in settings.ORG:
                 organization += self.nlp_result[i][0]
                 if not state:
                     state = True
@@ -139,65 +223,49 @@ class EventExtraction():
 
         return result
 
-    def pattern_cause(self):
-        ''' 事故原因提取模板
-        '''
-        patterns = []
 
-        key_words = ['起火', '事故', '火灾']
-        pattern = re.compile('.*?(?:{0})原因(.*?)[,.?:;!，。？：；！]'.format('|'.join(key_words)))
-        patterns.append(pattern)
+def pattern_match(patterns, text):
+    ''' 匹配给定模板，返回匹配列表
+    '''
+    result = []
 
-        return patterns
-
-
-    def pattern_lose(self):
-        ''' 定义损失模板
-        '''
-        patterns = []
-
-        key_words = ['伤亡', '损失']
-        pattern = re.compile('.*?(未造成.*?(?:{0}))[,.?:;!，。？：；]'.format('|'.join(key_words)))
-        patterns.append(pattern)
-
-        patterns.append(re.compile(r'(\d+人死亡)'))
-        patterns.append(re.compile(r'(\d+人身亡)'))
-        patterns.append(re.compile(r'(\d+人受伤)'))
-        patterns.append(re.compile(r'(\d+人烧伤)'))
-        patterns.append(re.compile(r'(\d+人坠楼身亡)'))
-        patterns.append(re.compile(r'(\d+人遇难)'))
-
-        return patterns
+    for pattern in patterns:
+        match_list = re.findall(pattern, text)
+        if match_list:
+            result.append(match_list[0])
+    return result
 
 
-    def pattern_match(self, news):
-        ''' 匹配模板
-        '''
-        self.cause = []
-        self.lose = []
+def pattern_cause():
+    ''' 事故原因提取模板
+    '''
+    patterns = []
 
-        for pattern in self.cause_patterns:
-            match_list = re.findall(pattern, news)
-            if match_list:
-                self.cause.append(match_list[0])
+    key_words = ['起火', '事故', '火灾']
+    pattern = re.compile('.*?(?:{0})原因(.*?)[,.?:;!，。？：；！]'.format('|'.join(key_words)))
+    patterns.append(pattern)
 
-        for pattern in self.lose_patterns:
-            match_list = re.findall(pattern, news)
-            if match_list:
-                self.lose.append(match_list[0])
+    return patterns
+
+
+def pattern_lose():
+    ''' 定义损失模板
+    '''
+    patterns = []
+
+    key_words = ['伤亡', '损失']
+    pattern = re.compile('.*?(未造成.*?(?:{0}))[,.?:;!，。？：；]'.format('|'.join(key_words)))
+    patterns.append(pattern)
+
+    patterns.append(re.compile(r'(\d+人死亡)'))
+    patterns.append(re.compile(r'(\d+人身亡)'))
+    patterns.append(re.compile(r'(\d+人受伤)'))
+    patterns.append(re.compile(r'(\d+人烧伤)'))
+    patterns.append(re.compile(r'(\d+人坠楼身亡)'))
+    patterns.append(re.compile(r'(\d+人遇难)'))
+
+    return patterns
 
 
 if __name__ == '__main__':
-    # 读入数据
-    with open(settings.test_data_path, 'r') as f:
-        test_data = f.readlines()
-
-    NEWS = test_data[1]
-    EVENTS = EventExtraction(NEWS)
-    print(EVENTS.event)
-    '''
-    with open('test_result', 'a') as f:
-        f.write(news)
-        f.write(str(events.event))
-        f.write('\n')
-    '''
+    pass

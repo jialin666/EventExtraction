@@ -14,9 +14,9 @@ class StanfordNER():
     '''
     def __init__(self, text):
         # 创建stanfordnlp工具，做ner
-        nlp = StanfordCoreNLP(path_or_host=settings.stanfordnlp_host,
-                              lang=settings.stanfordnlp_language,
-                              port=settings.stanfordnlp_port)
+        nlp = StanfordCoreNLP(path_or_host=settings.HOST,
+                              lang=settings.LANG,
+                              port=settings.PORT)
         self.ner_result = nlp.ner(text)
 
 

@@ -1,7 +1,9 @@
 ''' ner '''
 # -*-encoding:utf-8-*-
 
-LOCATION_LIST = ['LOCATION', 'FACILITY', 'CITY', 'STATE_OR_PROVINCE', 'GPE']
+
+import settings
+
 
 class NER():
     ''' 处理ner结果，返回时间、地名、组织
@@ -12,6 +14,7 @@ class NER():
         self.ner['time'] = self.taking_time()
         self.ner['location'] = self.taking_location()
         self.ner['organization'] = self.taking_organization()
+        self.ner['number'] = self.taking_number()
 
     def taking_time(self):
         ''' 获取时间
@@ -55,7 +58,7 @@ class NER():
         location = ""
         result = []
         while i < len(self.nlp_result):
-            if self.nlp_result[i][1] in LOCATION_LIST:
+            if self.nlp_result[i][1] in settings.LOC:
                 location += self.nlp_result[i][0]
                 if not state:
                     state = True
@@ -80,7 +83,7 @@ class NER():
         organization = ""
         result = []
         while i < len(self.nlp_result):
-            if self.nlp_result[i][1] == 'ORGANIZATION':
+            if self.nlp_result[i][1] in settings.ORG:
                 organization += self.nlp_result[i][0]
                 if not state:
                     state = True
@@ -92,6 +95,40 @@ class NER():
             i += 1
         if state:
             result.append(organization)
+
+        result = list(set(result))
+
+        return result
+
+    def taking_number(self):
+        ''' 获取数目
+        '''
+        i = 0
+        state = False
+        having_time = False
+        number = ""
+        result = []
+        while i < len(self.nlp_result):
+            if self.nlp_result[i][1] in ['DATE', 'TIME']:
+                number += self.nlp_result[i][0]
+                if not state:
+                    state = True
+                    having_time = True
+            elif self.nlp_result[i][1] in ['NUMBER', 'PERCENT', 'MONEY']:
+                number += self.nlp_result[i][0]
+                if not state:
+                    state = True
+            elif self.nlp_result[i][1] == 'MISC':
+                number += self.nlp_result[i][0]
+            else:
+                if state and not having_time:
+                    result.append(number)
+                number = ""
+                state = False
+                having_time = False
+            i += 1
+        if state:
+            result.append(number)
 
         result = list(set(result))
 
