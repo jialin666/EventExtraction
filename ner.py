@@ -6,8 +6,8 @@ LOCATION_LIST = ['LOCATION', 'FACILITY', 'CITY', 'STATE_OR_PROVINCE', 'GPE']
 class NER():
     ''' 处理ner结果，返回时间、地名、组织
     '''
-    def __init__(self, event):
-        self.nlp_result = event.nlp_result
+    def __init__(self, nlp):
+        self.nlp_result = nlp.ner_result
         self.ner = {}
         self.ner['time'] = self.taking_time()
         self.ner['location'] = self.taking_location()
